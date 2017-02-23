@@ -17,11 +17,12 @@ import requests
 import json
 
 from argparse import ArgumentParser
+from ConfigParser import ConfigParser
 from bs4 import BeautifulSoup
 
 options = None
 
-def parse_command_line():
+def parse_command_line(args=None):
     parser = ArgumentParser()
     parser.add_argument(
         '-v',
@@ -32,16 +33,22 @@ def parse_command_line():
     parser.add_argument(
         '-u',
         '--user',
-        required=True,
         help='user email or tel'
     )
     parser.add_argument(
         '-p',
         '--password',
-        required=True,
         help='user password'
     )
-    options = parser.parse_args()
+    parser.add_argument(
+        '-c',
+        '--config',
+        help='user config from file'
+    )
+    if args:
+        options = parser.parse_args(args)
+    else:
+        options = parser.parse_args()
     return options, parser
 
 
@@ -157,18 +164,21 @@ def listup_deleted_clip_in_clip(seiga, clipid, title):
             break
         count += n
     print('total: ' + str(count))
+    return count
 
 
 def listup_deleted_clip(seiga):
     r = seiga.get_myclip()
     soup = BeautifulSoup(r.text, "html.parser")
     illust = soup.find(id='my_menu_illust')
+    count = 0
     if illust:
         for li in illust.find_all(class_='clip_item'):
             print(li.find(class_='clip_item_title').text)
             id = li.a.get('href').split('/')[-1]
-            listup_deleted_clip_in_clip(seiga, id, False)
+            count += listup_deleted_clip_in_clip(seiga, id, False)
             print('----------')
+    return count
 
 
 def login(seiga):
@@ -181,11 +191,18 @@ def main():
     #sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     global options
     options, others = parse_command_line()
+    if options.config:
+        config = ConfigParser()
+        config.read(options.config)
+        options.user = config.get('options', 'user')
+        options.password = config.get('options', 'password')
     seiga = SeigaClip()
     if not login(seiga):
+        print(options.user)
         print('login failed...')
         exit(1)
-    listup_deleted_clip(seiga)
+    if listup_deleted_clip(seiga) > 0:
+        exit(1)
 
 
 if __name__ == '__main__':
