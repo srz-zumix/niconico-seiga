@@ -45,6 +45,12 @@ def parse_command_line(args=None):
         '--config',
         help='user config from file'
     )
+    parser.add_argument(
+        '-q',
+        '--quite',
+        action='store_true',
+        help='quite log'
+    )
     if args:
         options = parser.parse_args(args)
     else:
@@ -98,6 +104,11 @@ class SeigaClip:
         return self._login(user, password)
 
 
+def qprint(m):
+    if not options.quite:
+        print(m)
+
+
 def format_text(t):
     return t.strip('\xa0')
 
@@ -137,34 +148,26 @@ def clean_clip(seiga):
 
 
 def listup_deleted_clip_in_page(seiga, clipid, page):
-    count = 0
     r = seiga.get_page(clipid, page)
     soup = BeautifulSoup(r.text, "html.parser")
     if soup.find(class_='clip_empty'):
-        return -1
+        return None
     delete_lists = soup.find_all(attrs={'src': '/img/common/deleted.png'})
+    messages = []
     for d in delete_lists:
         root = get_clip_list_root(d.parent)
-        print('{0:2d}:{1}:'.format(page, get_clip_id(root)) + get_clip_title(root).strip())
-        count += 1
-    return count
+        messages.append('{0:2d}:{1}:'.format(page, get_clip_id(root)) + get_clip_title(root).strip())
+    return messages
 
 
-def listup_deleted_clip_in_clip(seiga, clipid, title):
-    count = 0
-    if title:
-        r = seiga.get_page(clipid, 1)
-        soup = BeautifulSoup(r.text, "html.parser")
-        title_text = soup.find(class_='title_text')
-        if title_text:
-            print(title_text.a.text)
+def listup_deleted_clip_in_clip(seiga, clipid):
+    messages = []
     for i in range(1, 26):
-        n = listup_deleted_clip_in_page(seiga, clipid, i)
-        if n < 0:
+        page_messages = listup_deleted_clip_in_page(seiga, clipid, i)
+        if page_messages is None:
             break
-        count += n
-    print('total: ' + str(count))
-    return count
+        messages.extend(page_messages)
+    return messages
 
 
 def listup_deleted_clip(seiga):
@@ -174,10 +177,16 @@ def listup_deleted_clip(seiga):
     count = 0
     if illust:
         for li in illust.find_all(class_='clip_item'):
-            print(li.find(class_='clip_item_title').text)
             id = li.a.get('href').split('/')[-1]
-            count += listup_deleted_clip_in_clip(seiga, id, False)
-            print('----------')
+            messages = listup_deleted_clip_in_clip(seiga, id)
+            n = len(messages)
+            if n > 0 or not options.quite:
+                print(li.find(class_='clip_item_title').text)
+                for m in messages:
+                    print(m)
+                count += n
+                print('total: ' + str(n))
+                print('----------')
     return count
 
 
