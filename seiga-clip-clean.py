@@ -181,7 +181,7 @@ def listup_deleted_clip(seiga):
             messages = listup_deleted_clip_in_clip(seiga, id)
             n = len(messages)
             if n > 0 or not options.quite:
-                print(li.find(class_='clip_item_title').text)
+                print(li.find(class_='clip_item_title').text.decode('utf-8'))
                 for m in messages:
                     print(m)
                 count += n
