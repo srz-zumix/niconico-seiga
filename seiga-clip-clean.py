@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # seiga-clip-clean.py
@@ -12,7 +12,6 @@ import os
 import io
 import codecs
 import sys
-import re
 import requests
 import json
 import configparser
@@ -181,7 +180,7 @@ def listup_deleted_clip(seiga):
             messages = listup_deleted_clip_in_clip(seiga, id)
             n = len(messages)
             if n > 0 or not options.quite:
-                print(li.find(class_='clip_item_title').text.decode('utf-8'))
+                print(li.find(class_='clip_item_title').text)
                 for m in messages:
                     print(m)
                 count += n
@@ -195,7 +194,7 @@ def login(seiga):
 
 
 def main():
-    sys.stdout = codecs.getwriter(sys.stdout.encoding)(sys.stdout, errors='ignore')
+    #sys.stdout = codecs.getwriter(sys.stdout.encoding)(sys.stdout, errors='ignore')
     #sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
     #sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     global options
@@ -207,7 +206,8 @@ def main():
         options.password = config.get('options', 'password')
     seiga = SeigaClip()
     if not login(seiga):
-        print(options.user)
+        if options.user:
+            print(type(options.user))
         print('login failed...')
         exit(1)
     if listup_deleted_clip(seiga) > 0:
