@@ -15,9 +15,9 @@ import sys
 import re
 import requests
 import json
+import configparser
 
 from argparse import ArgumentParser
-from configparser import configparser
 from bs4 import BeautifulSoup
 
 options = None
@@ -201,7 +201,7 @@ def main():
     global options
     options, others = parse_command_line()
     if options.config:
-        config = configparser()
+        config = configparser.ConfigParser()
         config.read(options.config)
         options.user = config.get('options', 'user')
         options.password = config.get('options', 'password')
