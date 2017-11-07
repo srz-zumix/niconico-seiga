@@ -51,7 +51,7 @@ def parse_command_line(args=None):
         help='quite log'
     )
     parser.add_argument(
-        '--detect-no-dsip',
+        '--detect-no-disp',
         action='store_true',
         help='detect no disp image'
     )
@@ -161,7 +161,7 @@ def listup_deleted_clip_in_page(seiga, clipid, page):
     for d in delete_lists:
         root = get_clip_list_root(d.parent)
         messages.append('{0:2d}:{1}:'.format(page, get_clip_id(root)) + get_clip_title(root).strip())
-    if options.detect_no_dsip:
+    if options.detect_no_disp:
         no_disp_lists = soup.find_all(attrs={'src': '/img/common/pic_no_disp.gif'})
         for d in no_disp_lists:
             root = get_clip_list_root(d.parent)
